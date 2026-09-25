@@ -15,7 +15,7 @@ from marksix_rd.schema import BALL_COLOR
 from marksix_rd.strategies import all_tickets
 
 st.set_page_config(page_title="Mark Six R&D Lab", layout="wide")
-st.markdown('<style>.ball{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;margin:0 3px;color:#fff;font-weight:700}.ball.red{background:#d32f2f}.ball.blue{background:#1565c0}.ball.green{background:#2e7d32}.ball.special{outline:3px solid #ffd54f;outline-offset:2px}</style>', unsafe_allow_html=True)
+st.markdown('<style>.ball{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;margin:0 3px;color:#fff;font-weight:700}.ball.red{background:#d32f2f}.ball.blue{background:#1565c0}.ball.green{background:#2e7d32}.ball.special{outline:3px solid #ffd54f;outline-offset:2px}.pred-card{border:1px solid #3333;border-radius:12px;padding:10px 12px;margin-bottom:8px}</style>', unsafe_allow_html=True)
 
 def balls_html(nums, special=None):
     parts=[]
@@ -24,9 +24,17 @@ def balls_html(nums, special=None):
         parts.append(f'<span class="ball {BALL_COLOR[int(n)]}{extra}">{int(n):02d}</span>')
     return "".join(parts)
 
-def render_panel(draws, seed, title, blurb, primary):
-    if primary:
-        st.success("主力分析窗口：第5代攪珠機。策略與回測都只用這頁數據。")
+def render_predictions(draws, seed):
+    st.header("各策略預測（下一期研究單）")
+    st.caption("用第5代窗口計算。研究候選，不是投注建議。")
+    tickets = all_tickets(draws, seed=seed)
+    rows=[]
+    for t in tickets:
+        st.markdown(f'<div class="pred-card"><b>{t["name"]}</b>　{balls_html(t["mains"])}　特 {balls_html([t["special"]], t["special"])}<br><span style="opacity:.75">{t.get("note","")}　單數 {t["odd"]}　大號 {t["high"]}</span></div>', unsafe_allow_html=True)
+        rows.append({"strategy":t["name"],"n1":t["mains"][0],"n2":t["mains"][1],"n3":t["mains"][2],"n4":t["mains"][3],"n5":t["mains"][4],"n6":t["mains"][5],"special":t["special"],"odd":t["odd"],"high":t["high"],"note":t.get("note","")})
+    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+
+def render_panel(draws, title, blurb):
     st.caption(blurb)
     if not draws:
         st.warning("這個機代目前沒有已匯入的開獎。")
@@ -40,42 +48,39 @@ def render_panel(draws, seed, title, blurb, primary):
     if s["latest"]:
         last = draws[-1]
         st.markdown("**最近開獎** "+balls_html(last.mains)+" + "+balls_html([last.special], last.special), unsafe_allow_html=True)
-    st.subheader("策略研究單")
-    if primary:
-        for t in all_tickets(draws, seed=seed):
-            left, right = st.columns((3,2))
-            with left:
-                st.markdown(f"**{t['name']}**")
-                st.markdown(balls_html(t["mains"])+" 特 "+balls_html([t["special"]], t["special"]), unsafe_allow_html=True)
-            with right:
-                st.caption(t.get("note",""))
-    else:
-        st.info("舊機分頁只做對照統計。")
     freq = frequency(draws)
     df = pd.DataFrame({"number": list(freq.keys()), "count": list(freq.values())}).sort_values("number")
     df["color"] = df["number"].map(BALL_COLOR)
     st.plotly_chart(px.bar(df, x="number", y="count", color="color", color_discrete_map={"red":"#d32f2f","blue":"#1565c0","green":"#2e7d32"}, title=f"{title} 頻率"), use_container_width=True)
-    if primary and len(draws) >= 16:
-        bt = pd.DataFrame(compare_all(draws, min_history=max(8, min(16, len(draws)//3))))
-        fig = px.bar(bt, x="strategy", y="mean_mains_hit")
-        fig.add_hline(y=6*6/49, line_dash="dash")
-        st.plotly_chart(fig, use_container_width=True)
 
 st.title("Mark Six R&D Lab")
-st.caption("分頁 = 攪珠機代。預測主力在第5代。")
+st.caption("預測板永遠在最上面；下方分頁是各代統計。")
 all_draws = load_processed()
 if not all_draws:
-    st.warning("尚無數據。")
-    st.stop()
+    st.warning("尚無數據。"); st.stop()
 seed = st.sidebar.number_input("策略隨機種子", min_value=1, max_value=99999, value=42)
 for key in TAB_ORDER:
     n = len(all_draws) if key=="all" else len(filter_era(all_draws, key))
-    st.sidebar.write(f"{ERAS[key]}: {n}")
+    st.sidebar.write(f"{ERAS[key]}：{n}")
+gen5 = filter_era(all_draws, "gen5")
+pred_draws = gen5 if len(gen5)>=8 else all_draws
+if pred_draws:
+    last = pred_draws[-1]
+    st.markdown(f"預測窗口最近 **{last.issue}** {last.date} "+balls_html(last.mains)+" + "+balls_html([last.special], last.special), unsafe_allow_html=True)
+render_predictions(pred_draws, int(seed))
+st.divider(); st.subheader("Walk-forward 回測")
+if len(pred_draws)>=16:
+    bt = pd.DataFrame(compare_all(pred_draws, min_history=max(8, min(16, len(pred_draws)//3))))
+    fig = px.bar(bt, x="strategy", y="mean_mains_hit")
+    fig.add_hline(y=6*6/49, line_dash="dash")
+    st.plotly_chart(fig, use_container_width=True)
+    st.dataframe(bt, use_container_width=True)
+st.divider(); st.subheader("機代對照")
 tabs = st.tabs([ERAS[k] for k in TAB_ORDER])
 for tab, key in zip(tabs, TAB_ORDER):
     with tab:
-        if key == "all":
-            render_panel(all_draws, int(seed), "全部", "對照用", False)
+        if key=="all":
+            render_panel(all_draws, "全部", "對照用。")
         else:
-            meta = GENS[key]
-            render_panel(filter_era(all_draws, key), int(seed), meta["label"], meta["blurb"], bool(meta["primary"]))
+            meta=GENS[key]
+            render_panel(filter_era(all_draws, key), meta["label"], meta["blurb"])
