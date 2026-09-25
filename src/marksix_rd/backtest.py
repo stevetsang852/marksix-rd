@@ -1,3 +1,5 @@
+"""Walk-forward backtest vs random baseline."""
+
 from __future__ import annotations
 
 from typing import Callable
@@ -27,16 +29,37 @@ def walk_forward(
         hist = draws[:i]
         actual = draws[i]
         ticket = fn(hist, seed=seed + i)
-        s = score(ticket["mains"], ticket["special"], actual)
-        rows.append(s)
-    n = max(len(rows), 1)
+        rows.append(score(ticket["mains"], ticket["special"], actual))
+    n_obs = len(rows)
+    mean = sum(r["mains_hit"] for r in rows) / n_obs if rows else 0.0
+    special_rate = sum(r["special_hit"] for r in rows) / n_obs if rows else 0.0
+    if n_obs >= 2:
+        var = sum((r["mains_hit"] - mean) ** 2 for r in rows) / (n_obs - 1)
+        se = (var / n_obs) ** 0.5
+    else:
+        var, se = 0.0, 0.0
+    z = 1.96
+    ci_lo, ci_hi = mean - z * se, mean + z * se
+    mu = 6 * 6 / 49
+    if n_obs < 8:
+        vs = "insufficient_sample"
+    elif ci_lo > mu:
+        vs = "above_random"
+    elif ci_hi < mu:
+        vs = "below_random"
+    else:
+        vs = "undistinguished_from_random"
     return {
         "strategy": strategy,
-        "n": len(rows),
-        "mean_mains_hit": sum(r["mains_hit"] for r in rows) / n if rows else 0.0,
-        "special_hit_rate": sum(r["special_hit"] for r in rows) / n if rows else 0.0,
-        "random_expected_mains_hit": 6 * 6 / 49,
+        "n": n_obs,
+        "mean_mains_hit": mean,
+        "special_hit_rate": special_rate,
+        "var_mains_hit": var,
+        "se_mains_hit": se,
+        "ci95_mains_hit": [ci_lo, ci_hi],
+        "random_expected_mains_hit": mu,
         "random_expected_special": 1 / 49,
+        "vs_random": vs,
     }
 
 
