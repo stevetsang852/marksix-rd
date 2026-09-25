@@ -1,0 +1,9 @@
+curl_exit=22
+total 444
+-rw-r--r-- 1 runner runner   4830 Sep 25 19:13 hkjc_2026-09-25.bin
+-rw-r--r-- 1 runner runner   4830 Sep 25 19:13 hkjc_2026-09-25.txt
+-rw-r--r-- 1 runner runner     13 Sep 25 19:13 hkjc_curl_2026-09-25.meta.txt
+-rw-r--r-- 1 runner runner 140995 Sep 25 19:13 hkjc_history_2002_now_2026-09-25.bin
+-rw-r--r-- 1 runner runner 140995 Sep 25 19:13 hkjc_history_2002_now_2026-09-25.txt
+-rw-r--r-- 1 runner runner 140995 Sep 25 19:13 hkjc_history_2002_now_latest.csv
+-rw-r--r-- 1 runner runner   1129 Sep 25 19:13 last_ingest_meta.json
