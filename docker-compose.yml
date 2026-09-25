@@ -1,0 +1,31 @@
+services:
+  dashboard:
+    build: .
+    image: marksix-rd:local
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+    environment:
+      PYTHONPATH: /app/src
+    restart: unless-stopped
+
+  api:
+    build: .
+    image: marksix-rd:local
+    command: ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "/app"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      PYTHONPATH: /app/src
+    profiles: ["api"]
+
+  test:
+    build: .
+    image: marksix-rd:local
+    command: ["pytest", "-q"]
+    environment:
+      PYTHONPATH: /app/src
+    profiles: ["test"]
