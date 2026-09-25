@@ -12,9 +12,7 @@ def _finish(name, mains, special, note=""):
     special = int(special)
     if special in mains:
         special = next(n for n in range(1, 50) if n not in mains)
-    return {"name": name, "mains": mains, "special": special, "note": note,
-            "colors": [BALL_COLOR[n] for n in mains],
-            "odd": sum(n % 2 for n in mains), "high": sum(1 for n in mains if n >= 25)}
+    return {"name": name, "mains": mains, "special": special, "note": note, "colors": [BALL_COLOR[n] for n in mains], "odd": sum(n % 2 for n in mains), "high": sum(1 for n in mains if n >= 25)}
 
 def _weighted_sample(weights, k, rng):
     pool = list(range(1, 50))
@@ -30,8 +28,8 @@ def _weighted_sample(weights, k, rng):
             if acc >= r:
                 idx = i
                 break
-        picked.append(pool.pop(idx))
-        pool_w.pop(idx)
+        picked.append(pool[idx])
+        pool.pop(idx); pool_w.pop(idx)
     return picked
 
 def strategy_random(draws, seed=42):
@@ -41,149 +39,130 @@ def strategy_random(draws, seed=42):
     return _finish("random", mains, special, "uniform baseline")
 
 def strategy_hot(draws, seed=42):
+    from collections import Counter
     c = Counter()
     for d in draws:
-        c.update(d.all_seven())
-    ranked = [n for n, _ in c.most_common()] or list(range(1, 50))
-    rng = random.Random(seed)
-    mains = sorted(rng.sample(ranked[:18], 6))
-    special = next((n for n in ranked if n not in mains), 1)
+        c.update(d.mains)
+    mains = [n for n,_ in c.most_common(6)] or list(range(1,7))
+    special = next((n for n,_ in c.most_common() if n not in mains), 1)
     return _finish("hot", mains, special, "highest historical frequency")
 
 def strategy_cold(draws, seed=42):
-    last = {n: -1 for n in range(1, 50)}
-    for i, d in enumerate(draws):
-        for n in d.all_seven():
-            last[n] = i
-    gap = {n: len(draws) - 1 - last[n] for n in range(1, 50)}
-    ranked = sorted(gap, key=lambda n: (-gap[n], n))
-    rng = random.Random(seed)
-    mains = sorted(rng.sample(ranked[:18], 6))
-    special = next(n for n in ranked if n not in mains)
+    last = {n: -1 for n in range(1,50)}
+    for i,d in enumerate(draws):
+        for n in d.mains:
+            last[n]=i
+    ranked = sorted(range(1,50), key=lambda n: last[n])
+    mains = ranked[:6]
+    special = next(n for n in ranked[6:] if n not in mains)
     return _finish("cold", mains, special, "longest absence (overdue)")
 
 def strategy_balanced(draws, seed=42):
-    hot = strategy_hot(draws, seed)
-    cold = strategy_cold(draws, seed + 1)
-    rng = random.Random(seed)
-    pool = list(dict.fromkeys(hot["mains"] + cold["mains"]))
-    while len(pool) < 12:
-        pool.append(rng.randint(1, 49))
-        pool = list(dict.fromkeys(pool))
-    mains = sorted(rng.sample(pool[:12], 6))
-    special = hot["special"] if hot["special"] not in mains else cold["special"]
+    h=strategy_hot(draws, seed); c=strategy_cold(draws, seed)
+    mains=sorted(list(dict.fromkeys(h["mains"][:3]+c["mains"][:3])))[:6]
+    while len(mains)<6:
+        n=next(x for x in range(1,50) if x not in mains); mains.append(n)
+    special=h["special"] if h["special"] not in mains else c["special"]
     return _finish("balanced", mains, special, "mix hot + cold pool")
 
 def strategy_color_spread(draws, seed=42):
-    rng = random.Random(seed)
-    by = {"red": [], "blue": [], "green": []}
-    for n in range(1, 50):
-        by[BALL_COLOR[n]].append(n)
-    mains = []
-    for col in ("red", "blue", "green"):
-        mains.extend(rng.sample(by[col], 2))
-    special = rng.choice([n for n in range(1, 50) if n not in mains])
+    from collections import defaultdict
+    buckets=defaultdict(list)
+    for n in range(1,50):
+        buckets[BALL_COLOR[n]].append(n)
+    rng=random.Random(seed+3)
+    mains=[]
+    for col in ("red","blue","green"):
+        mains.extend(rng.sample(buckets[col], 2))
+    special=rng.choice([n for n in range(1,50) if n not in mains])
     return _finish("color_spread", mains, special, "2 red + 2 blue + 2 green")
 
 def strategy_sum_band(draws, seed=42):
-    rng = random.Random(seed)
-    sums = [sum(d.mains) for d in draws] or [150]
-    target = float(np.median(sums))
-    best = sorted(rng.sample(range(1, 50), 6))
-    best_err = abs(sum(best) - target)
-    for _ in range(80):
-        cand = sorted(rng.sample(range(1, 50), 6))
-        err = abs(sum(cand) - target)
-        if err < best_err:
-            best_err, best = err, cand
-    special = rng.choice([n for n in range(1, 50) if n not in best])
-    return _finish("sum_band", best, special, f"target sum ≈ {target:.0f}")
+    rng=random.Random(seed+5)
+    target=135
+    best=None; best_d=10**9
+    for _ in range(400):
+        m=sorted(rng.sample(range(1,50),6))
+        d=abs(sum(m)-target)
+        if d<best_d:
+            best, best_d=m,d
+    special=rng.choice([n for n in range(1,50) if n not in best])
+    return _finish("sum_band", best, special, "target sum ≈ 135")
 
 def strategy_pair_affinity(draws, seed=42):
-    pair = Counter()
+    pairs=Counter()
     for d in draws:
-        m = d.mains
-        for i in range(6):
-            for j in range(i + 1, 6):
-                pair[(m[i], m[j])] += 1
-    rng = random.Random(seed)
-    if not pair:
-        return strategy_random(draws, seed)
-    (a, b), _ = pair.most_common(1)[0]
-    chosen = {a, b}
-    while len(chosen) < 6:
-        scores = Counter()
-        for n in range(1, 50):
-            if n in chosen:
-                continue
-            scores[n] = sum(pair.get(tuple(sorted((n, x))), 0) for x in chosen)
-        pool = [n for n, _ in scores.most_common(8)] or [n for n in range(1, 50) if n not in chosen]
-        chosen.add(rng.choice(pool))
-    mains = sorted(chosen)
-    special = rng.choice([n for n in range(1, 50) if n not in mains])
-    return _finish("pair_affinity", mains, special, "grow from most common pair")
+        m=list(d.mains)
+        for i in range(len(m)):
+            for j in range(i+1,len(m)):
+                pairs[(m[i],m[j])]+=1
+    if not pairs:
+        return strategy_hot(draws, seed)
+    a,b=max(pairs, key=pairs.get)
+    chosen=[a,b]
+    while len(chosen)<6:
+        scores=Counter()
+        for (x,y),c in pairs.items():
+            if x in chosen and y not in chosen: scores[y]+=c
+            if y in chosen and x not in chosen: scores[x]+=c
+        nxt=scores.most_common(1)[0][0] if scores else next(n for n in range(1,50) if n not in chosen)
+        chosen.append(nxt)
+    special=next(n for n in range(1,50) if n not in chosen)
+    return _finish("pair_affinity", chosen, special, "grow from most common pair")
 
 def strategy_exp_smooth(draws, seed=42):
-    feats = number_features(draws)
-    rec = feats[:, 2]
-    w = {n: float(rec[n - 1]) for n in range(1, 50)}
-    rng = random.Random(seed)
-    mains = sorted(_weighted_sample(w, 6, rng))
-    special = max((n for n in range(1, 50) if n not in mains), key=lambda n: w[n])
+    feats=number_features(draws); rec=feats[:,2]
+    w={n:float(rec[n-1]) for n in range(1,50)}
+    rng=random.Random(seed)
+    mains=sorted(_weighted_sample(w,6,rng))
+    special=max((n for n in range(1,50) if n not in mains), key=lambda n:w[n])
     return _finish("exp_smooth", mains, special, "exponential recency weights")
 
 def strategy_sklearn_rank(draws, seed=42):
-    if len(draws) < 16:
-        t = strategy_hot(draws, seed)
-        t["name"] = "sklearn_rank"
-        t["note"] = "fallback hot (history too short)"
-        return t
-    xs, ys = [], []
-    for t in range(8, len(draws)):
+    if len(draws)<16:
+        t=strategy_hot(draws, seed); t["name"]="sklearn_rank"; t["note"]="fallback hot"; return t
+    xs=[]; ys=[]
+    for t in range(8,len(draws)):
         xs.append(number_features(draws[:t]))
-        lab = np.zeros(49)
-        for n in draws[t].all_seven():
-            lab[n - 1] = 1.0
+        lab=np.zeros(49)
+        for n in draws[t].all_seven(): lab[n-1]=1.0
         ys.append(lab)
-    Xtr, ytr = np.vstack(xs), np.concatenate(ys)
+    Xtr=np.vstack(xs); ytr=np.concatenate(ys)
     try:
         from sklearn.linear_model import Ridge
-        model = Ridge(alpha=2.0)
-        model.fit(Xtr, ytr)
-        scores = model.predict(number_features(draws))
-        note = "Ridge rank on freq/gap/recency"
+        model=Ridge(alpha=2.0); model.fit(Xtr,ytr)
+        scores=model.predict(number_features(draws)); note="Ridge rank on freq/gap/recency"
     except Exception:
-        eye = np.eye(Xtr.shape[1])
-        beta = np.linalg.pinv(Xtr.T @ Xtr + 2.0 * eye) @ Xtr.T @ ytr
-        scores = number_features(draws) @ beta
-        note = "numpy ridge rank on freq/gap/recency"
-    ranked = list(np.argsort(-scores) + 1)
-    mains = sorted(int(n) for n in ranked[:6])
-    special = int(next(n for n in ranked[6:] if n not in mains))
+        eye=np.eye(Xtr.shape[1])
+        beta=np.linalg.pinv(Xtr.T@Xtr+2.0*eye)@Xtr.T@ytr
+        scores=number_features(draws)@beta; note="numpy ridge rank"
+    ranked=list(np.argsort(-scores)+1)
+    mains=sorted(int(n) for n in ranked[:6])
+    special=int(next(n for n in ranked[6:] if n not in mains))
     return _finish("sklearn_rank", mains, special, note)
 
 def strategy_ensemble(draws, seed=42):
-    votes, specials = Counter(), Counter()
+    votes=Counter(); specials=Counter()
     for fn in (strategy_hot, strategy_cold, strategy_balanced, strategy_exp_smooth, strategy_pair_affinity, strategy_sklearn_rank):
-        t = fn(draws, seed)
-        votes.update(t["mains"])
-        specials[t["special"]] += 1
-    mains = [n for n, _ in votes.most_common(6)]
-    special = next((n for n, _ in specials.most_common() if n not in mains), 1)
+        t=fn(draws, seed); votes.update(t["mains"]); specials[t["special"]]+=1
+    mains=[n for n,_ in votes.most_common(6)]
+    special=next((n for n,_ in specials.most_common() if n not in mains),1)
     return _finish("ensemble", mains, special, "vote across 6 research strategies")
 
-STRATEGIES = {
-    "random": strategy_random,
-    "hot": strategy_hot,
-    "cold": strategy_cold,
-    "balanced": strategy_balanced,
-    "color_spread": strategy_color_spread,
-    "sum_band": strategy_sum_band,
-    "pair_affinity": strategy_pair_affinity,
-    "exp_smooth": strategy_exp_smooth,
-    "sklearn_rank": strategy_sklearn_rank,
-    "ensemble": strategy_ensemble,
-}
+STRATEGIES={"random":strategy_random,"hot":strategy_hot,"cold":strategy_cold,"balanced":strategy_balanced,"color_spread":strategy_color_spread,"sum_band":strategy_sum_band,"pair_affinity":strategy_pair_affinity,"exp_smooth":strategy_exp_smooth,"sklearn_rank":strategy_sklearn_rank,"ensemble":strategy_ensemble}
 
 def all_tickets(draws, seed=42):
     return [fn(draws, seed=seed) for fn in STRATEGIES.values()]
+
+PLAIN_LOGIC={
+    "random": "對照組。49 個號碼機會一樣，隨便抽 6+1。如果其他策略長期贏不了它，就沒有預測力。",
+    "hot": "數過去每一顆球出現幾次，揣出現最多的 6 個。假設「常出的會再出」。",
+    "cold": "看哪一顆最久沒開，揣欠開最長的。假設「欠得久就快輪到」。",
+    "balanced": "一半熱號、一半冷號，避免全押同一種想法。",
+    "color_spread": "馬會波是紅／藍／綠。刻意各揣 2 粒，讓顏色平均。",
+    "sum_band": "六個正碼加起來通常落在中間一段。揣總和接近歷史中位的組合。",
+    "pair_affinity": "先找最常一齊出現的一對號碼，再一顆一顆補上去。",
+    "exp_smooth": "愈近的期愈重要。上期開過的權重大，十年前很小。",
+    "sklearn_rank": "用每顆球的出現次數、隔了多久、近期熱度三個數字打分，取最高 6 個。",
+    "ensemble": "六種策略各出一張單，哪顆被提名最多就入圍。多數決，不是魔法。",
+}
