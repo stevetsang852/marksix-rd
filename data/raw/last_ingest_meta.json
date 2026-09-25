@@ -1,0 +1,32 @@
+{
+  "tried": [
+    {
+      "url": "https://bet.hkjc.com/contentserver/jcbw/cmc/last30draw.json",
+      "error": "HTTPSConnectionPool(host='bet.hkjc.com', port=443): Max retries exceeded with url: /contentserver/jcbw/cmc/last30draw.json (Caused by NameResolutionError(\"HTTPSConnection(host='bet.hkjc.com', port=443): Failed to resolve 'bet.hkjc.com' ([Errno -2] Name or service not known)\"))"
+    },
+    {
+      "url": "https://bet.hkjc.com/contentserver/jcbw/cmc/last30draw.js",
+      "error": "HTTPSConnectionPool(host='bet.hkjc.com', port=443): Max retries exceeded with url: /contentserver/jcbw/cmc/last30draw.js (Caused by NameResolutionError(\"HTTPSConnection(host='bet.hkjc.com', port=443): Failed to resolve 'bet.hkjc.com' ([Errno -2] Name or service not known)\"))"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/sleepingarhat/hk-mark-six-2002-now/main/data/mark-six.csv",
+      "error": "HTTPSConnectionPool(host='raw.githubusercontent.com', port=443): Max retries exceeded with url: /sleepingarhat/hk-mark-six-2002-now/main/data/mark-six.csv (Caused by NameResolutionError(\"HTTPSConnection(host='raw.githubusercontent.com', port=443): Failed to resolve 'raw.githubusercontent.com' ([Errno -2] Name or service not known)\"))"
+    }
+  ],
+  "parsed": 3380,
+  "ok": true,
+  "cached_history_csv": 3380,
+  "total": 3380,
+  "era_counts": {
+    "gen5": 57,
+    "gen4": 2112,
+    "gen3": 1211,
+    "gen2": 0,
+    "gen1": 0,
+    "all": 3380
+  },
+  "range": {
+    "first": "2002-07-04",
+    "last": "2026-09-22"
+  }
+}

@@ -6,7 +6,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from marksix_rd.analyze import frequency, summary
 from marksix_rd.backtest import compare_all, score
-from marksix_rd.ingest import load_csv, parse_hkjc_last30
+from marksix_rd.ingest import load_csv, parse_history_csv_bytes, parse_hkjc_last30
 from marksix_rd.schema import Draw
 from marksix_rd.strategies import all_tickets
 
@@ -46,6 +46,15 @@ def test_backtest_runs():
 def test_parse_list_shape():
     raw = [{"id": "26/001", "date": "2026-01-03", "n1": 1, "n2": 2, "n3": 3, "n4": 4, "n5": 5, "n6": 6, "specialNumber": 7}]
     draws = parse_hkjc_last30(raw)
+    assert draws[0].special == 7
+
+
+def test_parse_history_csv_shape():
+    raw = b"draw,date,weekday,no1,no2,no3,no4,no5,no6,special\n02/053,2002-07-04,Thu,1,2,3,4,5,6,7\n"
+    draws = parse_history_csv_bytes(raw)
+    assert draws[0].issue == "02/053"
+    assert draws[0].date == "2002-07-04"
+    assert draws[0].mains == (1, 2, 3, 4, 5, 6)
     assert draws[0].special == 7
 
 

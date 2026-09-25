@@ -33,6 +33,7 @@ uvicorn app.api:app --reload --app-dir .
 ```
 
 沒有 `data/processed/draws.json` 時會讀 `data/sample_draws.csv`（示範列，非正式完整歷史）。
+匯入完整可重現資料時，系統會優先使用 `data/processed/draws.json`，再用 bundled CSV 補缺口。
 
 ## Dashboard
 
@@ -43,9 +44,17 @@ uvicorn app.api:app --reload --app-dir .
 | 第5代 | 2026-05-05 起（26/047） | 策略研究單 + 回測 |
 | 第4代 | 2010-11-09 – 2026-05-02 | 對照統計 |
 | 第3代 | 1995 – 2010-11-08 | 對照統計 |
-| 第2代 | 1990 – 1994 | 對照統計 |
-| 第1代 | 1975/76 – 1989 | 對照（早期選號池較小） |
 | 全部 | — | 對照，不當下期模型 |
+
+目前已匯入的可重現歷史 CSV 覆蓋 **2002-07-04 起**，所以第3代有 2002–2010 的資料。第1–2代在 dashboard 隱藏，待有可靠 pre-2002 原始資料來源後可再顯示。
+
+## 數據更新
+
+```bash
+python -m marksix_rd.ingest
+```
+
+Ingest 會嘗試讀官方最近 30 期，並支援 2002 至今的歷史 CSV raw snapshot。若 Docker／CI 網絡不能連外，只要 `data/raw/hkjc_history_2002_now*.csv` 已存在，仍會用本地 raw snapshot 重建 `data/processed/draws.json`。
 
 ## 策略
 

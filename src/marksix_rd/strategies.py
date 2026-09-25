@@ -151,6 +151,69 @@ def strategy_ensemble(draws, seed=42):
 
 STRATEGIES={"random":strategy_random,"hot":strategy_hot,"cold":strategy_cold,"balanced":strategy_balanced,"color_spread":strategy_color_spread,"sum_band":strategy_sum_band,"pair_affinity":strategy_pair_affinity,"exp_smooth":strategy_exp_smooth,"sklearn_rank":strategy_sklearn_rank,"ensemble":strategy_ensemble}
 
+STRATEGY_DETAILS = {
+    "random": {
+        "label": "Random 隨機基準",
+        "summary": "完全平均隨機抽 6 個正碼，再抽 1 個特別號。",
+        "use": "用來做基準線；其他策略至少要同它比較，否則沒有研究意義。",
+        "watch": "不是模型，只是同一個 seed 會重複產生同一張隨機研究單。",
+    },
+    "hot": {
+        "label": "Hot 熱號",
+        "summary": "先數歷史正碼和特別號出現次數，再由最高頻的前 18 個號碼抽 6 個。",
+        "use": "檢查近期／歷史高頻號碼是否有延續性。",
+        "watch": "六合彩每期獨立隨機；熱號不代表下一期較大機會中。",
+    },
+    "cold": {
+        "label": "Cold 冷號",
+        "summary": "找出最久沒有出現的號碼，再由最長空窗的前 18 個號碼抽 6 個。",
+        "use": "檢查「久未出現」是否有回補現象。",
+        "watch": "久未出現不等於即將出現，這是常見賭徒謬誤風險。",
+    },
+    "balanced": {
+        "label": "Balanced 冷熱混合",
+        "summary": "把 hot 和 cold 的候選池合併，再抽 6 個正碼。",
+        "use": "避免只追熱或只追冷，做較均衡的候選單。",
+        "watch": "仍然依賴 hot/cold 的假設，不能當作提高中獎率的證明。",
+    },
+    "color_spread": {
+        "label": "Color Spread 波色平均",
+        "summary": "固定抽 2 紅、2 藍、2 綠，保持波色分佈平均。",
+        "use": "研究波色分散的組合表現。",
+        "watch": "波色是號碼分類，不是下一期結果的因果訊號。",
+    },
+    "sum_band": {
+        "label": "Sum Band 總和帶",
+        "summary": "參考歷史 6 個正碼總和的中位數，搜尋總和最接近的組合。",
+        "use": "避免總和太極端，研究中間總和值區間。",
+        "watch": "每個組合本身機率仍然一樣，總和貼近歷史不代表更準。",
+    },
+    "pair_affinity": {
+        "label": "Pair Affinity 號碼配對",
+        "summary": "由歷史最常同時出現的一對號碼開始，逐步加入與已選號碼同場次較多的號碼。",
+        "use": "研究號碼兩兩共現關係。",
+        "watch": "共現可能只是樣本巧合，尤其資料少時更不穩定。",
+    },
+    "exp_smooth": {
+        "label": "Exp Smooth 近期權重",
+        "summary": "近期開出的號碼權重較高，越舊的資料影響越低。",
+        "use": "研究短期走勢或近期權重是否有訊號。",
+        "watch": "近期權重高不代表有趨勢；隨機資料也會看似有走勢。",
+    },
+    "sklearn_rank": {
+        "label": "Sklearn Rank 機器學習排序",
+        "summary": "用頻率、空窗、近期權重等特徵訓練 Ridge 排序模型，選分數最高的號碼。",
+        "use": "測試簡單 ML 特徵能否在 walk-forward 回測打敗隨機基準。",
+        "watch": "資料太少會退回 hot；即使用 ML，也不代表可預測隨機攪珠。",
+    },
+    "ensemble": {
+        "label": "Ensemble 集成投票",
+        "summary": "集合 hot、cold、balanced、exp_smooth、pair_affinity、sklearn_rank 的選號投票。",
+        "use": "降低單一策略偏差，觀察多策略共識。",
+        "watch": "多個弱假設加起來不一定變強，仍需看回測。",
+    },
+}
+
 def all_tickets(draws, seed=42):
     return [fn(draws, seed=seed) for fn in STRATEGIES.values()]
 

@@ -3,7 +3,7 @@ from pathlib import Path
 import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from marksix_rd.era import GEN5_START, TAB_ORDER, filter_era, generation_of, pick_working_set
+from marksix_rd.era import DISPLAY_TAB_ORDER, GEN5_START, TAB_ORDER, filter_era, generation_of, pick_working_set
 from marksix_rd.schema import Draw
 
 def _d(issue, day):
@@ -14,6 +14,9 @@ def test_gen5_start_is_2026_may_5():
 
 def test_tab_order_starts_with_gen5():
     assert TAB_ORDER[0] == "gen5"
+
+def test_display_tab_order_hides_empty_early_generations():
+    assert DISPLAY_TAB_ORDER == ["gen5", "gen4", "gen3", "all"]
 
 def test_generation_boundaries():
     assert generation_of(_d("a", "1989-12-31")) == "gen1"

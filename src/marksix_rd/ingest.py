@@ -14,6 +14,9 @@ HKJC_CANDIDATES = [
     "https://bet.hkjc.com/contentserver/jcbw/cmc/last30draw.json",
     "https://bet.hkjc.com/contentserver/jcbw/cmc/last30draw.js",
 ]
+HKJC_HISTORY_CSV_CANDIDATES = [
+    "https://raw.githubusercontent.com/sleepingarhat/hk-mark-six-2002-now/main/data/mark-six.csv",
+]
 USER_AGENT = "marksix-rd/0.1 research-bot (+https://github.com/stevetsang852/marksix-rd)"
 
 def fetch_raw(url, timeout=30):
@@ -86,21 +89,38 @@ def parse_any_json_bytes(payload):
 def load_csv(path, source="csv"):
     draws = []
     with path.open(newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            nums = []
-            for i in range(1, 7):
-                val = None
-                for k in (f"n{i}", f"N{i}", f"no{i}", f"num{i}"):
-                    if k in row and row[k]:
-                        val = int(row[k]); break
-                nums.append(val)
-            special = None
-            for k in ("special", "specialNumber", "extra", "sno"):
-                if k in row and row[k]:
-                    special = int(row[k]); break
-            if all(nums) and special:
-                draws.append(Draw(issue=str(row.get("issue") or row.get("id") or row.get("draw") or ""), date=str(row.get("date") or row.get("drawDate") or "")[:10], n1=nums[0], n2=nums[1], n3=nums[2], n4=nums[3], n5=nums[4], n6=nums[5], special=special, source=source))
+        draws.extend(parse_csv_rows(csv.DictReader(f), source=source))
     return draws
+
+def parse_csv_rows(rows, source="csv"):
+    draws = []
+    for row in rows:
+        nums = []
+        for i in range(1, 7):
+            val = None
+            for k in (f"n{i}", f"N{i}", f"no{i}", f"num{i}"):
+                if k in row and row[k]:
+                    val = int(row[k]); break
+            nums.append(val)
+        special = None
+        for k in ("special", "specialNumber", "extra", "sno"):
+            if k in row and row[k]:
+                special = int(row[k]); break
+        if all(nums) and special:
+            draws.append(Draw(issue=str(row.get("issue") or row.get("id") or row.get("draw") or ""), date=str(row.get("date") or row.get("drawDate") or "")[:10], n1=nums[0], n2=nums[1], n3=nums[2], n4=nums[3], n5=nums[4], n6=nums[5], special=special, source=source))
+    return draws
+
+def parse_history_csv_bytes(payload, source="hkjc-history-csv"):
+    text = payload.decode("utf-8-sig", errors="replace")
+    return parse_csv_rows(csv.DictReader(text.splitlines()), source=source)
+
+def load_cached_history_csv():
+    draws = []
+    if not DATA_RAW.exists():
+        return draws
+    for path in sorted(DATA_RAW.glob("hkjc_history_2002_now*.csv")) + sorted(DATA_RAW.glob("hkjc_history_2002_now*.txt")):
+        draws.extend(parse_history_csv_bytes(path.read_bytes(), source="hkjc-history-cache"))
+    return _dedupe(draws)
 
 def _dedupe(draws):
     seen, out = set(), []
@@ -119,16 +139,23 @@ def write_processed(draws):
     return path
 
 def load_processed():
-    bundled = []
-    for name, src in (("sample_draws.csv", "sample"), ("gen5_draws.csv", "gen5-seed")):
-        p = ROOT / "data" / name
-        if p.exists():
-            bundled.extend(load_csv(p, source=src))
+    draws = []
     path = DATA_PROCESSED / "draws.json"
     if path.exists() and path.stat().st_size > 2:
         raw = json.loads(path.read_text(encoding="utf-8"))
-        bundled.extend([Draw(issue=r["issue"], date=r["date"], n1=int(r["n1"]), n2=int(r["n2"]), n3=int(r["n3"]), n4=int(r["n4"]), n5=int(r["n5"]), n6=int(r["n6"]), special=int(r["special"]), source=r.get("source", "processed")) for r in raw])
-    return _dedupe(bundled)
+        draws.extend([Draw(issue=r["issue"], date=r["date"], n1=int(r["n1"]), n2=int(r["n2"]), n3=int(r["n3"]), n4=int(r["n4"]), n5=int(r["n5"]), n6=int(r["n6"]), special=int(r["special"]), source=r.get("source", "processed")) for r in raw])
+    for name, src in (("sample_draws.csv", "sample"), ("gen5_draws.csv", "gen5-seed")):
+        p = ROOT / "data" / name
+        if p.exists():
+            draws.extend(load_csv(p, source=src))
+    return _dedupe(draws)
+
+def era_counts(draws):
+    from .era import GENS, filter_era
+
+    counts = {key: len(filter_era(draws, key)) for key in GENS}
+    counts["all"] = len(draws)
+    return counts
 
 def ingest_cli():
     meta = {"tried": [], "parsed": 0, "ok": False}
@@ -143,9 +170,26 @@ def ingest_cli():
                 all_draws.extend(parsed); meta["ok"] = True
         except requests.RequestException as exc:
             meta["tried"].append({"url": url, "error": str(exc)})
-    merged = _dedupe(load_processed() + all_draws)
+    for url in HKJC_HISTORY_CSV_CANDIDATES:
+        try:
+            status, ctype, body = fetch_raw(url, timeout=60)
+            snap = save_raw_snapshot(body, label="hkjc_history_2002_now")
+            parsed = parse_history_csv_bytes(body)
+            meta["tried"].append({"url": url, "status": status, "content_type": ctype, "bytes": len(body), "snap": str(snap), "parsed": len(parsed)})
+            if parsed:
+                all_draws.extend(parsed); meta["ok"] = True
+        except requests.RequestException as exc:
+            meta["tried"].append({"url": url, "error": str(exc)})
+    cached = load_cached_history_csv()
+    if cached:
+        all_draws.extend(cached)
+        meta["ok"] = True
+        meta["cached_history_csv"] = len(cached)
+    merged = _dedupe(all_draws + load_processed())
     write_processed(merged)
     meta["parsed"] = len(all_draws); meta["total"] = len(merged)
+    meta["era_counts"] = era_counts(merged)
+    meta["range"] = {"first": merged[0].date if merged else None, "last": merged[-1].date if merged else None}
     DATA_RAW.mkdir(parents=True, exist_ok=True)
     (DATA_RAW / "last_ingest_meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     return meta

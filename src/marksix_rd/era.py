@@ -11,6 +11,7 @@ GENS = {
 }
 GEN5_START = GENS["gen5"]["start"]
 TAB_ORDER = ["gen5", "gen4", "gen3", "gen2", "gen1", "all"]
+DISPLAY_TAB_ORDER = ["gen5", "gen4", "gen3", "all"]
 ERAS = {k: GENS[k]["label"] for k in ("gen5", "gen4", "gen3", "gen2", "gen1")}
 ERAS["all"] = "全部歷史（對照）"
 
