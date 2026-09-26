@@ -94638,5 +94638,33 @@
       "red",
       "red"
     ]
+  },
+  {
+    "issue": "26/104",
+    "date": "2026-09-26",
+    "n1": 4,
+    "n2": 28,
+    "n3": 31,
+    "n4": 44,
+    "n5": 47,
+    "n6": 48,
+    "special": 19,
+    "source": "hkjc-history-csv",
+    "mains": [
+      4,
+      28,
+      31,
+      44,
+      47,
+      48
+    ],
+    "colors": [
+      "blue",
+      "green",
+      "blue",
+      "green",
+      "blue",
+      "blue"
+    ]
   }
 ]

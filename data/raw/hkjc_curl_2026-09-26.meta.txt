@@ -1,0 +1,14 @@
+curl_exit=22
+total 744
+-rw-r--r-- 1 runner runner   4830 Sep 26 18:31 hkjc_2026-09-25.bin
+-rw-r--r-- 1 runner runner   4830 Sep 26 18:31 hkjc_2026-09-25.txt
+-rw-r--r-- 1 runner runner   4830 Sep 26 18:32 hkjc_2026-09-26.bin
+-rw-r--r-- 1 runner runner   4830 Sep 26 18:32 hkjc_2026-09-26.txt
+-rw-r--r-- 1 runner runner    551 Sep 26 18:31 hkjc_curl_2026-09-25.meta.txt
+-rw-r--r-- 1 runner runner     13 Sep 26 18:32 hkjc_curl_2026-09-26.meta.txt
+-rw-r--r-- 1 runner runner 140995 Sep 26 18:31 hkjc_history_2002_now_2026-09-25.bin
+-rw-r--r-- 1 runner runner 140995 Sep 26 18:31 hkjc_history_2002_now_2026-09-25.txt
+-rw-r--r-- 1 runner runner 141037 Sep 26 18:32 hkjc_history_2002_now_2026-09-26.bin
+-rw-r--r-- 1 runner runner 141037 Sep 26 18:32 hkjc_history_2002_now_2026-09-26.txt
+-rw-r--r-- 1 runner runner 140995 Sep 26 18:31 hkjc_history_2002_now_latest.csv
+-rw-r--r-- 1 runner runner   1129 Sep 26 18:32 last_ingest_meta.json
