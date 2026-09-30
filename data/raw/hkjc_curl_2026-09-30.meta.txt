@@ -1,0 +1,34 @@
+curl_exit=22
+total 1944
+-rw-r--r-- 1 runner runner   4830 Sep 30 19:57 hkjc_2026-09-25.bin
+-rw-r--r-- 1 runner runner   4830 Sep 30 19:57 hkjc_2026-09-25.txt
+-rw-r--r-- 1 runner runner   4830 Sep 30 19:57 hkjc_2026-09-26.bin
+-rw-r--r-- 1 runner runner   4830 Sep 30 19:57 hkjc_2026-09-26.txt
+-rw-r--r-- 1 runner runner   4830 Sep 30 19:57 hkjc_2026-09-27.bin
+-rw-r--r-- 1 runner runner   4830 Sep 30 19:57 hkjc_2026-09-27.txt
+-rw-r--r-- 1 runner runner   4830 Sep 30 19:57 hkjc_2026-09-28.bin
+-rw-r--r-- 1 runner runner   4830 Sep 30 19:57 hkjc_2026-09-28.txt
+-rw-r--r-- 1 runner runner   4830 Sep 30 19:57 hkjc_2026-09-29.bin
+-rw-r--r-- 1 runner runner   4830 Sep 30 19:57 hkjc_2026-09-29.txt
+-rw-r--r-- 1 runner runner   4830 Sep 30 19:57 hkjc_2026-09-30.bin
+-rw-r--r-- 1 runner runner   4830 Sep 30 19:57 hkjc_2026-09-30.txt
+-rw-r--r-- 1 runner runner    551 Sep 30 19:57 hkjc_curl_2026-09-25.meta.txt
+-rw-r--r-- 1 runner runner    930 Sep 30 19:57 hkjc_curl_2026-09-26.meta.txt
+-rw-r--r-- 1 runner runner   1310 Sep 30 19:57 hkjc_curl_2026-09-27.meta.txt
+-rw-r--r-- 1 runner runner   1689 Sep 30 19:57 hkjc_curl_2026-09-28.meta.txt
+-rw-r--r-- 1 runner runner   2068 Sep 30 19:57 hkjc_curl_2026-09-29.meta.txt
+-rw-r--r-- 1 runner runner     13 Sep 30 19:57 hkjc_curl_2026-09-30.meta.txt
+-rw-r--r-- 1 runner runner 140995 Sep 30 19:57 hkjc_history_2002_now_2026-09-25.bin
+-rw-r--r-- 1 runner runner 140995 Sep 30 19:57 hkjc_history_2002_now_2026-09-25.txt
+-rw-r--r-- 1 runner runner 141037 Sep 30 19:57 hkjc_history_2002_now_2026-09-26.bin
+-rw-r--r-- 1 runner runner 141037 Sep 30 19:57 hkjc_history_2002_now_2026-09-26.txt
+-rw-r--r-- 1 runner runner 141037 Sep 30 19:57 hkjc_history_2002_now_2026-09-27.bin
+-rw-r--r-- 1 runner runner 141037 Sep 30 19:57 hkjc_history_2002_now_2026-09-27.txt
+-rw-r--r-- 1 runner runner 141037 Sep 30 19:57 hkjc_history_2002_now_2026-09-28.bin
+-rw-r--r-- 1 runner runner 141037 Sep 30 19:57 hkjc_history_2002_now_2026-09-28.txt
+-rw-r--r-- 1 runner runner 141037 Sep 30 19:57 hkjc_history_2002_now_2026-09-29.bin
+-rw-r--r-- 1 runner runner 141037 Sep 30 19:57 hkjc_history_2002_now_2026-09-29.txt
+-rw-r--r-- 1 runner runner 141037 Sep 30 19:57 hkjc_history_2002_now_2026-09-30.bin
+-rw-r--r-- 1 runner runner 141037 Sep 30 19:57 hkjc_history_2002_now_2026-09-30.txt
+-rw-r--r-- 1 runner runner 140995 Sep 30 19:57 hkjc_history_2002_now_latest.csv
+-rw-r--r-- 1 runner runner   1129 Sep 30 19:57 last_ingest_meta.json
