@@ -4,9 +4,19 @@
 
 Repo: https://github.com/stevetsang852/marksix-rd
 
-攪珠是隨機事件，長期期望值為負。本專案把「策略能不能打敗均匀隨機」當成要檢驗的假說，用 walk-forward 回測與官方波色／機代分窗來驗證。
+攪珠是隨機事件，長期期望值為負。本專案把「策略能不能打敗均勻隨機」當成要檢驗的假說，用 walk-forward 回測與官方波色／機代分窗來驗證。
 
 ## 快速開始
+
+### 一鍵啟動
+
+| 檔 | 用途 |
+|---|---|
+| `install_local.sh` / `install_local.bat` | 建 `.venv` 並 `pip install -r requirements.txt`（要 Python 3.10+） |
+| `start_in_local.sh` / `start_in_local.bat` | 先安裝，再開 dashboard :8501 同 API :8000 |
+| `start_in_docker.sh` / `start_in_docker.bat` | `docker compose up --build dashboard api` |
+
+Linux / macOS 先 `chmod +x *.sh`。Docker 要已裝 Docker Desktop 或 engine。詳見 `docs/START.md`。
 
 ### Docker（建議）
 
@@ -71,6 +81,9 @@ app/api.py
 data/
 Dockerfile
 docker-compose.yml
+start_in_docker.sh
+start_in_local.sh
+install_local.sh
 .github/workflows/ci.yml
 .github/workflows/ingest-hkjc.yml
 ```
