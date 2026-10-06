@@ -5,25 +5,25 @@
       "status": 404,
       "content_type": "text/html",
       "bytes": 4830,
-      "snap": "/home/runner/work/marksix-rd/marksix-rd/data/raw/hkjc_2026-10-05.bin"
+      "snap": "/home/runner/work/marksix-rd/marksix-rd/data/raw/hkjc_2026-10-06.bin"
     },
     {
       "url": "https://bet.hkjc.com/contentserver/jcbw/cmc/last30draw.js",
       "status": 404,
       "content_type": "text/html",
       "bytes": 4830,
-      "snap": "/home/runner/work/marksix-rd/marksix-rd/data/raw/hkjc_2026-10-05.bin"
+      "snap": "/home/runner/work/marksix-rd/marksix-rd/data/raw/hkjc_2026-10-06.bin"
     },
     {
       "url": "https://raw.githubusercontent.com/sleepingarhat/hk-mark-six-2002-now/main/data/mark-six.csv",
-      "status": 200,
+      "status": 404,
       "content_type": "text/plain; charset=utf-8",
-      "bytes": 141079,
-      "snap": "/home/runner/work/marksix-rd/marksix-rd/data/raw/hkjc_history_2002_now_2026-10-05.bin",
-      "parsed": 3382
+      "bytes": 14,
+      "snap": "/home/runner/work/marksix-rd/marksix-rd/data/raw/hkjc_history_2002_now_2026-10-06.bin",
+      "parsed": 0
     }
   ],
-  "parsed": 6764,
+  "parsed": 3382,
   "ok": true,
   "cached_history_csv": 3382,
   "total": 3382,
