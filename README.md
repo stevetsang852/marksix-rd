@@ -4,7 +4,16 @@
 
 Repo: https://github.com/stevetsang852/marksix-rd
 
-攪珠是隨機事件，長期期望值為負。本專案把「策略能不能打敗均勻隨機」當成要檢驗的假說，用 walk-forward 回測與官方波色／機代分窗來驗證。
+攪珠是隨機事件，長期期望值為負。本專案把「策略能不能打敗均匀隨機」當成要檢驗的假說，用 walk-forward 回測與官方波色／機代分窗來驗證。
+
+## 3D 攪珠機模擬器（參考）
+
+另有一個開源 **Smartplay Halogen III 3D 攪珠機** 互動模擬器（Three.js + Rapier3D 物理）：
+
+- 源碼：https://github.com/edmondyip/mark-six
+- 線上演示：https://edmondyip.github.io/mark-six/
+
+這是純視覺／物理模擬，與本專案的數據分析／策略回測完全獨立。可作為「攪珠過程長啥樣」的直觀參考。
 
 ## 快速開始
 
